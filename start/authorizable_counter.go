@@ -38,28 +38,10 @@ func (t *AuthorizableCounterChaincode) Init(stub shim.ChaincodeStubInterface, fu
 //Invoke Transaction makes increment counter
 func (t *AuthorizableCounterChaincode) Invoke(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 	if function == "increment" {
-	/*val, err := stub.ReadCertAttribute("position")
-	fmt.Printf("Position => %v error %v \n", string(val), err)
-	isOk, _ := stub.VerifyAttribute("position", []byte("Software Engineer")) */ // Here the ABAC API is called to verify the attribute, just if the value is verified the counter will be incremented.
-	//if isOk {
-		counter, err := stub.GetState("counter")
-		if err != nil {
-			return nil, err
-		}
-		var cInt int
-		cInt, err = strconv.Atoi(string(counter))
-		if err != nil {
-			return nil, err
-		}
-		cInt = cInt + 1
-		counter = []byte(strconv.Itoa(cInt))
-		stub.PutState("counter", counter)
+	
+		return t.increment(stub, args)
 	}
 	if function == "decrement" {
-	/*val, err := stub.ReadCertAttribute("position")
-	fmt.Printf("Position => %v error %v \n", string(val), err)
-	isOk, _ := stub.VerifyAttribute("position", []byte("Software Engineer")) */ // Here the ABAC API is called to verify the attribute, just if the value is verified the counter will be incremented.
-	//if isOk {
 		counter, err := stub.GetState("counter")
 		if err != nil {
 			return nil, err
@@ -73,6 +55,24 @@ func (t *AuthorizableCounterChaincode) Invoke(stub shim.ChaincodeStubInterface, 
 		counter = []byte(strconv.Itoa(cInt))
 		stub.PutState("counter", counter)
 	}
+	return nil, nil
+
+}
+
+func (t *AuthorizableCounterChaincode) increment(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+
+	counter, err := stub.GetState("counter")
+	if err != nil {
+		return nil, err
+	}
+	var cInt int
+	cInt, err = strconv.Atoi(string(counter))
+	if err != nil {
+		return nil, err
+	}
+	cInt = cInt + 1
+	counter = []byte(strconv.Itoa(cInt))
+	stub.PutState("counter", counter)
 	return nil, nil
 
 }
@@ -101,9 +101,11 @@ func (t *AuthorizableCounterChaincode) Query(stub shim.ChaincodeStubInterface, f
 	return Avalbytes, nil
 }
 
+
 func main() {
 	err := shim.Start(new(AuthorizableCounterChaincode))
 	if err != nil {
 		fmt.Printf("Error starting Simple chaincode: %s", err)
 	}
 }
+
