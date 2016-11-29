@@ -37,7 +37,7 @@ func (t *handler) insertPatient(stub shim.ChaincodeStubInterface,
     _id string, 
     _ssnr uint64, 
     _birth string, 
-    _address string) error {
+    _address string) (byte[], error) {
 
     ok, err := stub.InsertRow(tableColumn, shim.Row{
 		Columns: []*shim.Column{
@@ -47,9 +47,9 @@ func (t *handler) insertPatient(stub shim.ChaincodeStubInterface,
 			&shim.Column{Value: &shim.Column_String_{String_: _address}}},
 	})
     if !ok && err == nil {
-		return errors.New("Patient already inserted")
+		return nil, errors.New("Patient already inserted")
 	}
-    return nil
+    return nil, nil
 }
 
 func (t *handler) deletePatient(stub shim.ChaincodeStubInterface, _id string) error {
