@@ -181,7 +181,7 @@ func (t *HealthContract) Query(stub shim.ChaincodeStubInterface, function string
 }
 
 func (t *HealthContract) getPatientInfo(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	return nil, nil
+	return myhandler.queryPatient(stub, args[0])
 }
 
 func (t *HealthContract) getPatientData(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
