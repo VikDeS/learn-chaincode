@@ -94,7 +94,27 @@ func (t *HealthContract) Invoke(stub shim.ChaincodeStubInterface, function strin
 func (t *HealthContract) addPatient(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
     // check if right nr of arguments
 	ssnr, err := strconv.ParseUint(args[1], 10, 64)
-	return myhandler.insertPatient(stub, args[0], ssnr, args[2], args[3])
+	myhandler.insertPatient(stub, args[0], ssnr, args[2], args[3])
+	if err != nil {
+			return nil, err
+	}
+    // addPatient to 
+	//append(patientRecords , len(Patient))
+     /*
+    counter, err := stub.GetState("counter")
+	if err != nil {
+		return nil, err
+	}
+	var cInt int
+	cInt, err = strconv.Atoi(string(counter))
+	if err != nil {
+		return nil, err
+	}
+	cInt = cInt + 1
+	counter = []byte(strconv.Itoa(cInt))
+	stub.PutState("counter", counter)*/
+	err = stub.PutState("logger", []byte("add patient " + args[0]))
+	return nil, err
 
 }
 
