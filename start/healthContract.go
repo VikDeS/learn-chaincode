@@ -24,21 +24,22 @@ import (
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 )
 
-var patientRecords []Patient;
+var patientRecords []Patient
 var myhandler = NewHandler()
 
 type Patient struct {
-    ssnr int
-    name string
-    //gender Gender
-    birthdate string
-    address string
-    //permissionedViewers []int
+	ssnr int
+	name string
+	//gender Gender
+	birthdate string
+	address   string
+	//permissionedViewers []int
 	//medicalData []byte
 }
 
 type HealthContract struct {
 }
+
 /*
 type Gender struct {}
 
@@ -55,22 +56,22 @@ func (t *HealthContract) Init(stub shim.ChaincodeStubInterface, function string,
 //Invoke Transaction makes increment counter
 func (t *HealthContract) Invoke(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 	switch function {
-    case "addPatient":
-        return t.addPatient(stub, args)  
-    case "changePatientInfo":
-        return t.changePatientInfo(stub, args)       
+	case "addPatient":
+		return t.addPatient(stub, args)
+	case "changePatientInfo":
+		return t.changePatientInfo(stub, args)
 	case "removePatient":
-        return t.removePatient(stub, args)        
-    case "givePermission":
-        return t.givePermission(stub, args)       
-    case "removePermission":
-        return t.removePermission(stub, args)     
-    default:
-        return nil, errors.New("Invalid invoke function name.")
-    }
-    
-    /*if function == "increment" {
-	
+		return t.removePatient(stub, args)
+	case "givePermission":
+		return t.givePermission(stub, args)
+	case "removePermission":
+		return t.removePermission(stub, args)
+	default:
+		return nil, errors.New("Invalid invoke function name.")
+	}
+
+	/*if function == "increment" {
+
 		return t.increment(stub, args)
 	}
 	if function == "decrement" {
@@ -92,52 +93,52 @@ func (t *HealthContract) Invoke(stub shim.ChaincodeStubInterface, function strin
 }
 
 func (t *HealthContract) addPatient(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-    // check if right nr of arguments
+	// check if right nr of arguments
 	ssnr, err := strconv.ParseUint(args[1], 10, 64)
-	myhandler.insertPatient(stub, args[0], ssnr, args[2], args[3])
+
 	if err != nil {
-			return nil, err
+		return nil, err
 	}
-    // addPatient to 
+	// addPatient to
 	//append(patientRecords , len(Patient))
-     /*
-    counter, err := stub.GetState("counter")
-	if err != nil {
-		return nil, err
-	}
-	var cInt int
-	cInt, err = strconv.Atoi(string(counter))
-	if err != nil {
-		return nil, err
-	}
-	cInt = cInt + 1
-	counter = []byte(strconv.Itoa(cInt))
-	stub.PutState("counter", counter)*/
-	err = stub.PutState("logger", []byte("add patient " + args[0]))
-	return nil, err
+	/*
+		    counter, err := stub.GetState("counter")
+			if err != nil {
+				return nil, err
+			}
+			var cInt int
+			cInt, err = strconv.Atoi(string(counter))
+			if err != nil {
+				return nil, err
+			}
+			cInt = cInt + 1
+			counter = []byte(strconv.Itoa(cInt))
+			stub.PutState("counter", counter)*/
+
+	return nil, myhandler.insertPatient(stub, args[0], ssnr, args[2], args[3])
 
 }
 
 func (t *HealthContract) changePatientInfo(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	// check if right nr of arguments
 
-    // get first argument is object with all the new info
-	var err = stub.PutState("logger", []byte("change patientInfo of " + args[0]))
+	// get first argument is object with all the new info
+	var err = stub.PutState("logger", []byte("change patientInfo of "+args[0]))
 	return nil, err
 }
 
 func (t *HealthContract) removePatient(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	var err = stub.PutState("logger", []byte("remove patient " + args[0]))
+	var err = stub.PutState("logger", []byte("remove patient "+args[0]))
 	return nil, err
-} 
+}
 
 func (t *HealthContract) givePermission(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	var err = stub.PutState("logger", []byte("give permission to " + args[0]))
+	var err = stub.PutState("logger", []byte("give permission to "+args[0]))
 	return nil, err
 }
 
 func (t *HealthContract) removePermission(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	var err = stub.PutState("logger", []byte("remove permission of " + args[0]))
+	var err = stub.PutState("logger", []byte("remove permission of "+args[0]))
 	return nil, err
 }
 
@@ -146,37 +147,37 @@ func (t *HealthContract) Query(stub shim.ChaincodeStubInterface, function string
 
 	/*var logger
 	logger, err = stub.GetState("logger")
-*/
+	*/
 	switch function {
-    case "getPatientInfo":
-        t.getPatientInfo(stub, args)
-    case "getPatientData":
-        t.getPatientData(stub, args)
-    case "getPermissions":
-        t.getPermissions(stub, args)
+	case "getPatientInfo":
+		t.getPatientInfo(stub, args)
+	case "getPatientData":
+		t.getPatientData(stub, args)
+	case "getPermissions":
+		t.getPermissions(stub, args)
 	default:
 		return nil, errors.New("Invalid query function name.")
-    }
+	}
 	return nil, nil
-	
+
 	/*
-	var err error
+		var err error
 
-	// Get the state from the ledger
-	Avalbytes, err := stub.GetState("counter")
-	if err != nil {
-		jsonResp := "{\"Error\":\"Failed to get state for counter\"}"
-		return nil, errors.New(jsonResp)
-	}
+		// Get the state from the ledger
+		Avalbytes, err := stub.GetState("counter")
+		if err != nil {
+			jsonResp := "{\"Error\":\"Failed to get state for counter\"}"
+			return nil, errors.New(jsonResp)
+		}
 
-	if Avalbytes == nil {
-		jsonResp := "{\"Error\":\"Nil amount for counter\"}"
-		return nil, errors.New(jsonResp)
-	}
+		if Avalbytes == nil {
+			jsonResp := "{\"Error\":\"Nil amount for counter\"}"
+			return nil, errors.New(jsonResp)
+		}
 
-	jsonResp := "{\"Name\":\"counter\",\"Amount\":\"" + string(Avalbytes) + "\"}"
-	fmt.Printf("Query Response:%s\n", jsonResp)
-	return Avalbytes, nil*/
+		jsonResp := "{\"Name\":\"counter\",\"Amount\":\"" + string(Avalbytes) + "\"}"
+		fmt.Printf("Query Response:%s\n", jsonResp)
+		return Avalbytes, nil*/
 }
 
 func (t *HealthContract) getPatientInfo(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
@@ -197,4 +198,3 @@ func main() {
 		fmt.Printf("Error starting Simple chaincode: %s", err)
 	}
 }
-
