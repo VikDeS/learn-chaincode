@@ -64,17 +64,17 @@ func (t *handler) deletePatient(stub shim.ChaincodeStubInterface, _id string) er
     return nil
 }
 
-func (t *handler) queryPatient(stub shim.ChaincodeStubInterface, _id string) (string, uint64, string, string, error) {
+func (t *handler) queryPatient(stub shim.ChaincodeStubInterface, _id string) (byte[], error) {
 
     row, err := t.queryTable(stub, _id)
 	if err != nil {
-		return "", 0, "", "", err
+		return nil, err
 	}
 	if len(row.Columns) == 0 {
-		return "", 0, "", "",  errors.New("row not found")
+		return nil,  errors.New("row not found")
 	}
 
-	return row.Columns[0].GetString_(), row.Columns[1].GetUint64(), row.Columns[2].GetString_(), row.Columns[3].GetString_(), nil
+	return row.Columns, nil
 }
 
 func (t *handler) queryTable(stub shim.ChaincodeStubInterface, _id string) (shim.Row, error) {
