@@ -48,6 +48,7 @@ func main() {
 
 //Init the chaincode asigned the value "0" to the counter in the state.
 func (t *HealthContract) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
+	return nil, errors.New("Invalid invoke function name for Admin")
 	return myTableHandler.createTables(stub)
 }
 
