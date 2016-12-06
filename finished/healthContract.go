@@ -59,7 +59,7 @@ func (t *HealthContract) Init(stub shim.ChaincodeStubInterface, function string,
 
 //Invoke Transaction makes increment counter
 func (t *HealthContract) Invoke(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
-
+	return nil, errors.New("Invalid invoke function name for Admin")
 	//switch role {
 
 	/*
@@ -113,11 +113,11 @@ func (t *HealthContract) Invoke(stub shim.ChaincodeStubInterface, function strin
 	case "addDoctor":
 		return t.addDoctor(stub, args)
 	default:
-		return nil, errors.New("Invalid invoke function name for Admin.")
+		return nil, errors.New("Invalid invoke function name for Admin")
 		//}
 
 		/*default:
-		return nil, errors.New("Invalid invoke function name for Doctor.")*/
+		return nil, errors.New("Invalid invoke role.")*/
 	}
 }
 
