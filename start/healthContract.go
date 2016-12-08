@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -12,7 +13,7 @@ var myTableHandler = NewTableHandler()
 //var myAuthenticator = NewAuthenticator()
 
 type User struct {
-	ID          uint64 `json:"iD"`
+	ID          string `json:"iD"`
 	FirstName   string `json:"firstName"`
 	LastName    string `json:"lastName"`
 	Address     string `json:"address"`
@@ -69,9 +70,9 @@ func (t *HealthContract) Invoke(stub shim.ChaincodeStubInterface, function strin
 	//case:Patient:
 	switch function {
 
-	case "changeMyInfo":
+	case "changeMyPatientInfo": // case "changeMyInfo":
 		return t.changePatient(stub, args)
-	case "removeMyAccount":
+	case "removePatientAccount": //case "removeMyAccount":
 		return t.removePatient(stub, args)
 	case "givePermission":
 		return t.givePermission(stub, args)
@@ -112,11 +113,11 @@ func (t *HealthContract) Invoke(stub shim.ChaincodeStubInterface, function strin
 	case "addDoctor":
 		return t.addDoctor(stub, args)
 	default:
-		return nil, errors.New("Invalid invoke function name for Admin.")
+		return nil, errors.New("Invalid invoke function name for Admin")
 		//}
 
 		/*default:
-		return nil, errors.New("Invalid invoke function name for Doctor.")*/
+		return nil, errors.New("Invalid invoke role.")*/
 	}
 }
 
@@ -124,7 +125,7 @@ func (t *HealthContract) Invoke(stub shim.ChaincodeStubInterface, function strin
 
 // changes the values of row of Patient table with patientID = patient.patientID
 // takes in 1 argument, Patient struct
-func (t *HealthContract) changePatientInfo(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+func (t *HealthContract) changePatient(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 
 	// check number of arguments
 	if len(args) != 1 {
@@ -136,7 +137,7 @@ func (t *HealthContract) changePatientInfo(stub shim.ChaincodeStubInterface, arg
 
 // changes the values of row of Doctor table with doctorID = doctor.doctorID
 // takes in 1 argument, Doctor struct
-func (t *HealthContract) changeDoctorInfo(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+func (t *HealthContract) changeDoctor(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 
 	// check number of arguments
 	if len(args) != 1 {
@@ -208,7 +209,7 @@ func (t *HealthContract) addPatient(stub shim.ChaincodeStubInterface, args []str
 	}
 
 	// parse first argument to patient object
-	patient = args[0]
+	err := json.Unmarshal([]byte(args[0]), &patient)
 
 	// put second argument in password string
 	pw = args[1]
@@ -217,7 +218,9 @@ func (t *HealthContract) addPatient(stub shim.ChaincodeStubInterface, args []str
 	if err != nil {
 		return nil, err
 	}
-
+	if pw == "" {
+		return nil, err
+	}
 	//var stream
 	// register and enroll Patient
 	//stream, err := myAuthenticator.enrollPatient(stub, patient.PatientID, pw)
@@ -227,7 +230,7 @@ func (t *HealthContract) addPatient(stub shim.ChaincodeStubInterface, args []str
 		return nil, err
 	}
 	// addPatient to table
-	return nil, myTableHandler.insertPatient(stub, patient.PatientID, patient.FirstName, patient.LastName, patient.Address, patient.DateOfBirth)
+	return myTableHandler.insertPatient(stub, patient)
 
 }
 
@@ -245,13 +248,16 @@ func (t *HealthContract) addDoctor(stub shim.ChaincodeStubInterface, args []stri
 	}
 
 	// parse first argument to doctor object
-	doctor = args[0]
+	err := json.Unmarshal([]byte(args[0]), &doctor)
 
 	// put second argument in password string
 	pw = args[1]
 
 	// check if error during parsing of arguments
 	if err != nil {
+		return nil, err
+	}
+	if pw == "" {
 		return nil, err
 	}
 
@@ -264,7 +270,7 @@ func (t *HealthContract) addDoctor(stub shim.ChaincodeStubInterface, args []stri
 		return nil, err
 	}
 	// addDoctor to table
-	return nil, myTableHandler.insertDoctor(stub, doctor.DoctorID, doctor.FirstName, doctor.LastName, doctor.Function, doctor.Institute, doctor.Address, doctor.DateOfBirth)
+	return myTableHandler.insertDoctor(stub, doctor)
 
 }
 
@@ -287,10 +293,10 @@ func (t *HealthContract) Query(stub shim.ChaincodeStubInterface, function string
 	//case:Patient:
 	switch function {
 
-	case "getMyInfo":
+	case "getMyPatientInfo": //case "getMyInfo":
 		return t.getPatientInfo(stub, args)
-	case "getPermission":
-		return t.getPermission(stub, args)
+	case "getPermissions":
+		return t.getPermissions(stub, args)
 
 	/*default:
 			return nil, errors.New("Invalid invoke function name for Patient.")
@@ -344,7 +350,7 @@ func (t *HealthContract) getPatientInfo(stub shim.ChaincodeStubInterface, args [
 	}
 
 	// get patient from table
-	return nil, myTableHandler.getPatient(stub, args[0])
+	return myTableHandler.getPatient(stub, args[0])
 }
 
 // returns the permissions of a patient
