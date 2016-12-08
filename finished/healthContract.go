@@ -195,44 +195,37 @@ func (t *HealthContract) removePermission(stub shim.ChaincodeStubInterface, args
 	return nil, nil
 }
 
-// calls authenticator to register, enroll new patient and
-// adds the patient struct to the Patients table
-// needs 2 arguments: Patient struct and password
+// adds the patient to the Patients table
+// needs 5 arguments: patient id, firstname, lastname, address, dateofbirth
 func (t *HealthContract) addPatient(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-
-	return nil, errors.New(args[0])
-
-	var pw string
 	var patient Patient
 
 	// check number of arguments
-	if len(args) != 2 {
-		return nil, errors.New("addPatient: You need to pass 2 arguments")
+	if len(args) != 5 {
+		return nil, errors.New("addPatient: You need to pass 5 arguments")
+	}
+	// check if id is not empty
+	if args[0] == "" {
+		return nil, errors.New("addPatient: patientID may not be empty")
 	}
 
-	arr := []byte(args[0])
+	// create Patient JSON
+	patient_id := "\"iD\":\"" + args[0] + "\", "
+	firstname := "\"firstName\":\"" + args[1] + "\", "
+	lastname := "\"lastName\":\"" + args[2] + "\", "
+	address := "\"address\":\"" + args[3] + "\", "
+	dateofbirth := "\"dateOfBirth\":\"" + args[4] + "\""
 
-	// parse first argument to patient object
-	err := json.Unmarshal(arr, &patient)
+	patient_json := "{" + patient_id + firstname + lastname + address + dateofbirth + "}"
 
-	// put second argument in password string
-	pw = args[1]
+	// parse Patient JSON to patient go struct
+	err := json.Unmarshal([]byte(patient_json), &patient)
 
 	// check if error during parsing of arguments
 	if err != nil {
 		return nil, err
 	}
-	if pw == "" {
-		return nil, err
-	}
-	//var stream
-	// register and enroll Patient
-	//stream, err := myAuthenticator.enrollPatient(stub, patient.PatientID, pw)
 
-	// check if error during enrolling
-	if err != nil {
-		return nil, err
-	}
 	// addPatient to table
 	return myTableHandler.insertPatient(stub, patient)
 
