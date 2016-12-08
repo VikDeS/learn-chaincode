@@ -200,6 +200,8 @@ func (t *HealthContract) removePermission(stub shim.ChaincodeStubInterface, args
 // needs 2 arguments: Patient struct and password
 func (t *HealthContract) addPatient(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 
+	return nil, errors.New(args[0])
+
 	var pw string
 	var patient Patient
 
@@ -208,8 +210,10 @@ func (t *HealthContract) addPatient(stub shim.ChaincodeStubInterface, args []str
 		return nil, errors.New("addPatient: You need to pass 2 arguments")
 	}
 
+	arr := []byte(args[0])
+
 	// parse first argument to patient object
-	err := json.Unmarshal([]byte(args[0]), &patient)
+	err := json.Unmarshal(arr, &patient)
 
 	// put second argument in password string
 	pw = args[1]
