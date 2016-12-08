@@ -110,7 +110,7 @@ func (t *handler) insertDoctor(stub shim.ChaincodeStubInterface, doctor Doctor) 
 
 func (t *handler) getPatient(stub shim.ChaincodeStubInterface,
 	_id string) ([]byte, error) {
-	return nil, nil
+	return queryPatient(stub, _id)
 }
 
 /*
@@ -124,7 +124,7 @@ func (t *handler) deletePatient(stub shim.ChaincodeStubInterface, _id string) er
 		return errors.New("error deleting patient")
 	}
     return nil
-}
+}*/
 
 func (t *handler) queryPatient(stub shim.ChaincodeStubInterface, _id string) (byte[], error) {
 
@@ -146,4 +146,4 @@ func (t *handler) queryTable(stub shim.ChaincodeStubInterface, _id string) (shim
 	columns = append(columns, col1)
 
 	return stub.GetRow(tableColumn, columns)
-}*/
+}
