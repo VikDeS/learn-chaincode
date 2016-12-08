@@ -108,9 +108,32 @@ func (t *handler) insertDoctor(stub shim.ChaincodeStubInterface, doctor Doctor) 
 	return nil, err
 }
 
-func (t *handler) getPatient(stub shim.ChaincodeStubInterface,
-	_id string) ([]byte, error) {
-	return queryPatient(stub, _id)
+func (t *handler) queryTable(stub shim.ChaincodeStubInterface, _id string) (shim.Row, error) {
+
+	var columns []shim.Column
+	col1 := shim.Column{Value: &shim.Column_String_{String_: _id}}
+	columns = append(columns, col1)
+
+	return stub.GetRow(patientTableName, columns)
+}
+
+func (t *handler) getPatient(stub shim.ChaincodeStubInterface, _id string) ([]string, error) {
+
+	row, err := t.queryTable(stub, _id)
+	if err != nil {
+		return nil, err
+	}
+	if len(row.Columns) == 0 {
+		return nil, errors.New("row not found")
+	}
+
+	var pars []string
+	pars = append(pars, row.Columns[0].GetString_())
+	pars = append(pars, row.Columns[1].GetString_())
+	pars = append(pars, row.Columns[2].GetString_())
+	pars = append(pars, row.Columns[3].GetString_())
+	pars = append(pars, row.Columns[4].GetString_())
+	return pars, nil
 }
 
 /*
@@ -125,25 +148,3 @@ func (t *handler) deletePatient(stub shim.ChaincodeStubInterface, _id string) er
 	}
     return nil
 }*/
-
-func (t *handler) queryPatient(stub shim.ChaincodeStubInterface, _id string) (byte[], error) {
-
-    row, err := t.queryTable(stub, _id)
-	if err != nil {
-		return nil, err
-	}
-	if len(row.Columns) == 0 {
-		return nil,  errors.New("row not found")
-	}
-
-	return row.Columns, nil
-}
-
-func (t *handler) queryTable(stub shim.ChaincodeStubInterface, _id string) (shim.Row, error) {
-
-	var columns []shim.Column
-	col1 := shim.Column{Value: &shim.Column_String_{String_: _id}}
-	columns = append(columns, col1)
-
-	return stub.GetRow(tableColumn, columns)
-}

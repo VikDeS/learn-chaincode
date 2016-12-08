@@ -345,9 +345,18 @@ func (t *HealthContract) getPatientInfo(stub shim.ChaincodeStubInterface, args [
 	if len(args) != 1 {
 		return nil, errors.New("getPatientInfo: You need to pass 1 argument")
 	}
+	parameters, err := myTableHandler.getPatient(stub, args[0])
 
+	var p Patient
+	p.ID = parameters[0]
+	p.FirstName = parameters[1]
+	p.LastName = parameters[2]
+	p.Address = parameters[3]
+	p.DateOfBirth = parameters[4]
+
+	bytes, err := json.Marshal(p)
 	// get patient from table
-	return myTableHandler.getPatient(stub, args[0])
+	return bytes, err
 }
 
 // returns the permissions of a patient
