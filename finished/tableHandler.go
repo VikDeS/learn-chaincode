@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 )
@@ -69,7 +71,7 @@ func (t *handler) createTables(stub shim.ChaincodeStubInterface) ([]byte, error)
 	// create Permissions Table
 	return nil, stub.CreateTable(permissionsTableName, []*shim.ColumnDefinition{
 		&shim.ColumnDefinition{Name: patientColumn, Type: shim.ColumnDefinition_STRING, Key: true},
-		&shim.ColumnDefinition{Name: doctorIDColumn, Type: shim.ColumnDefinition_STRING, Key: true}, //errors?
+		&shim.ColumnDefinition{Name: doctorIDColumn, Type: shim.ColumnDefinition_STRING, Key: true},
 	})
 
 }
@@ -108,23 +110,37 @@ func (t *handler) insertDoctor(stub shim.ChaincodeStubInterface, doctor Doctor) 
 	return nil, err
 }
 
-func (t *handler) queryTable(stub shim.ChaincodeStubInterface, _id string) (shim.Row, error) {
+func (t *handler) insertPermission(stub shim.ChaincodeStubInterface, permission Permission) ([]byte, error) {
+
+	ok, err := stub.InsertRow(doctorTableName, shim.Row{
+		Columns: []*shim.Column{
+			&shim.Column{Value: &shim.Column_String_{String_: permission.PatientID}},
+			&shim.Column{Value: &shim.Column_String_{String_: permission.DoctorID}}},
+	})
+
+	if !ok && err == nil {
+		return nil, errors.New("Permission already inserted")
+	}
+
+	return nil, err
+}
+
+func (t *handler) queryTable(stub shim.ChaincodeStubInterface, tablename string, columns []shim.Column) (shim.Row, error) {
+	return stub.GetRow(tablename, columns)
+}
+
+func (t *handler) getPatient(stub shim.ChaincodeStubInterface, _id string) ([]string, error) {
 
 	var columns []shim.Column
 	col1 := shim.Column{Value: &shim.Column_String_{String_: _id}}
 	columns = append(columns, col1)
 
-	return stub.GetRow(patientTableName, columns)
-}
-
-func (t *handler) getPatient(stub shim.ChaincodeStubInterface, _id string) ([]string, error) {
-
-	row, err := t.queryTable(stub, _id)
+	row, err := t.queryTable(stub, patientTableName, columns)
 	if err != nil {
 		return nil, err
 	}
 	if len(row.Columns) == 0 {
-		return nil, errors.New("row not found")
+		return nil, errors.New("getPatient: row not found")
 	}
 
 	var pars []string
@@ -134,6 +150,78 @@ func (t *handler) getPatient(stub shim.ChaincodeStubInterface, _id string) ([]st
 	pars = append(pars, row.Columns[3].GetString_())
 	pars = append(pars, row.Columns[4].GetString_())
 	return pars, nil
+}
+
+func (t *handler) getDoctor(stub shim.ChaincodeStubInterface, _id string) ([]string, error) {
+
+	var columns []shim.Column
+	col1 := shim.Column{Value: &shim.Column_String_{String_: _id}}
+	columns = append(columns, col1)
+
+	row, err := t.queryTable(stub, doctorTableName, columns)
+	if err != nil {
+		return nil, err
+	}
+	if len(row.Columns) == 0 {
+		return nil, errors.New("getDoctor: row not found")
+	}
+
+	var pars []string
+	pars = append(pars, row.Columns[0].GetString_())
+	pars = append(pars, row.Columns[1].GetString_())
+	pars = append(pars, row.Columns[2].GetString_())
+	pars = append(pars, row.Columns[3].GetString_())
+	pars = append(pars, row.Columns[4].GetString_())
+	pars = append(pars, row.Columns[5].GetString_())
+	pars = append(pars, row.Columns[6].GetString_())
+	return pars, nil
+}
+
+func (t *handler) getRows(stub shim.ChaincodeStubInterface, tablename string, columns []shim.Column) ([]byte, error) {
+
+	rowChannel, err := stub.GetRows(tablename, columns)
+	if err != nil {
+		return nil, fmt.Errorf("getRows: %s", err)
+	}
+
+	// blob bddtests table chaincode
+	var rows []shim.Row
+	for {
+		select {
+		case row, ok := <-rowChannel:
+			if !ok {
+				rowChannel = nil
+			} else {
+				rows = append(rows, row)
+			}
+		}
+		if rowChannel == nil {
+			break
+		}
+	}
+
+	return json.Marshal(rows)
+}
+
+func (t *handler) getDoctorPermissions(stub shim.ChaincodeStubInterface, _id string) ([]byte, error) {
+	/*
+		var columns []shim.Column
+
+		col1 := shim.Column{Value: &shim.Column_String_{String_: g_id}}
+		columns = append(columns, col1)
+
+		return t.getRows(stub, permissionsTableName, columns)
+	*/
+	return nil, nil
+}
+
+func (t *handler) getPatientPermissions(stub shim.ChaincodeStubInterface, _id string) ([]byte, error) {
+	var columns []shim.Column
+
+	col1 := shim.Column{Value: &shim.Column_String_{String_: _id}}
+	columns = append(columns, col1)
+
+	return t.getRows(stub, permissionsTableName, columns)
 }
 
 /*

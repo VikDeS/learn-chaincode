@@ -30,6 +30,11 @@ type Doctor struct {
 	Institute string `json:"institute"`
 }
 
+type Permission struct {
+	PatientID string `json:"patientID"`
+	DoctorID  string `json:"doctorID"`
+}
+
 type HealthContract struct {
 }
 
@@ -123,6 +128,113 @@ func (t *HealthContract) Invoke(stub shim.ChaincodeStubInterface, function strin
 
 /*-------------------------------------------------------------------------------------------------------------*/
 
+// gives permission to doctor to view patient's data
+// takes in 2 arguments, PatientID and DoctorID
+func (t *HealthContract) givePermission(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	var permission Permission
+
+	// check number of arguments
+	if len(args) != 2 {
+		return nil, errors.New("givePermission: You need to pass 2 arguments")
+	}
+
+	// create Patient JSON
+	patient_id := "\"iD\":\"" + args[0] + "\", "
+	doctor_id := "\"firstName\":\"" + args[1] + "\", "
+
+	permission_json := "{" + patient_id + doctor_id + "}"
+
+	// parse Patient JSON to patient go struct
+	err := json.Unmarshal([]byte(permission_json), &permission)
+
+	// check if error during parsing of arguments
+	if err != nil {
+		return nil, err
+	}
+
+	// addPermission to table
+	return myTableHandler.insertPermission(stub, permission)
+
+}
+
+// adds the patient to the Patients table
+// needs 5 arguments: patient id, firstname, lastname, address, dateofbirth
+func (t *HealthContract) addPatient(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	var patient Patient
+
+	// check number of arguments
+	if len(args) != 5 {
+		return nil, errors.New("addPatient: You need to pass 5 arguments")
+	}
+	// check if id is not empty
+	if args[0] == "" {
+		return nil, errors.New("addPatient: patientID may not be empty")
+	}
+
+	// create Patient JSON
+	patient_id := "\"iD\":\"" + args[0] + "\", "
+	firstname := "\"firstName\":\"" + args[1] + "\", "
+	lastname := "\"lastName\":\"" + args[2] + "\", "
+	address := "\"address\":\"" + args[3] + "\", "
+	dateofbirth := "\"dateOfBirth\":\"" + args[4] + "\""
+
+	patient_json := "{" + patient_id + firstname + lastname + address + dateofbirth + "}"
+
+	// parse Patient JSON to patient go struct
+	err := json.Unmarshal([]byte(patient_json), &patient)
+
+	// check if error during parsing of arguments
+	if err != nil {
+		return nil, err
+	}
+
+	// addPatient to table
+	return myTableHandler.insertPatient(stub, patient)
+
+}
+
+// calls authenticator to register, enroll new doctor and
+// adds the doctor struct to the Doctor table
+// needs 2 arguments: Doctor struct and password
+func (t *HealthContract) addDoctor(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+
+	var doctor Doctor
+
+	// check number of arguments
+	if len(args) != 7 {
+		return nil, errors.New("addDoctor: You need to pass 7 arguments")
+	}
+	// check if id is not empty
+	if args[0] == "" {
+		return nil, errors.New("addDoctor: doctorID may not be empty")
+	}
+
+	// create Doctor JSON
+	doctor_id := "\"iD\":\"" + args[0] + "\", "
+	firstname := "\"firstName\":\"" + args[1] + "\", "
+	lastname := "\"lastName\":\"" + args[2] + "\", "
+	address := "\"address\":\"" + args[3] + "\", "
+	dateofbirth := "\"dateOfBirth\":\"" + args[4] + "\""
+	function := "\"function\":\"" + args[3] + "\", "
+	institute := "\"institute\":\"" + args[4] + "\""
+
+	doctor_json := "{" + doctor_id + firstname + lastname + address + dateofbirth + function + institute + "}"
+
+	// parse Doctor JSON to doctor go struct
+	err := json.Unmarshal([]byte(doctor_json), &doctor)
+
+	// check if error during parsing of arguments
+	if err != nil {
+		return nil, err
+	}
+
+	// addDoctor to table
+	return myTableHandler.insertDoctor(stub, doctor)
+
+}
+
+// NOG TE IMPLEMENTEREN FUNCTIES
+
 // changes the values of row of Patient table with patientID = patient.patientID
 // takes in 1 argument, Patient struct
 func (t *HealthContract) changePatient(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
@@ -171,18 +283,6 @@ func (t *HealthContract) removeDoctor(stub shim.ChaincodeStubInterface, args []s
 	return nil, nil
 }
 
-// gives permission to doctor to view patient's data
-// takes in 2 arguments, PatientID and DoctorID
-func (t *HealthContract) givePermission(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-
-	// check number of arguments
-	if len(args) != 2 {
-		return nil, errors.New("givePermission: You need to pass 2 arguments")
-	}
-
-	return nil, nil
-}
-
 // removes permission to doctor to view patient's data
 // takes in 2 arguments, PatientID and DoctorID
 func (t *HealthContract) removePermission(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
@@ -193,82 +293,6 @@ func (t *HealthContract) removePermission(stub shim.ChaincodeStubInterface, args
 	}
 
 	return nil, nil
-}
-
-// adds the patient to the Patients table
-// needs 5 arguments: patient id, firstname, lastname, address, dateofbirth
-func (t *HealthContract) addPatient(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	var patient Patient
-
-	// check number of arguments
-	if len(args) != 5 {
-		return nil, errors.New("addPatient: You need to pass 5 arguments")
-	}
-	// check if id is not empty
-	if args[0] == "" {
-		return nil, errors.New("addPatient: patientID may not be empty")
-	}
-
-	// create Patient JSON
-	patient_id := "\"iD\":\"" + args[0] + "\", "
-	firstname := "\"firstName\":\"" + args[1] + "\", "
-	lastname := "\"lastName\":\"" + args[2] + "\", "
-	address := "\"address\":\"" + args[3] + "\", "
-	dateofbirth := "\"dateOfBirth\":\"" + args[4] + "\""
-
-	patient_json := "{" + patient_id + firstname + lastname + address + dateofbirth + "}"
-
-	// parse Patient JSON to patient go struct
-	err := json.Unmarshal([]byte(patient_json), &patient)
-
-	// check if error during parsing of arguments
-	if err != nil {
-		return nil, err
-	}
-
-	// addPatient to table
-	return myTableHandler.insertPatient(stub, patient)
-
-}
-
-// calls authenticator to register, enroll new doctor and
-// adds the doctor struct to the Doctor table
-// needs 2 arguments: Doctor struct and password
-func (t *HealthContract) addDoctor(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-
-	var pw string
-	var doctor Doctor
-
-	// check number of arguments
-	if len(args) != 2 {
-		return nil, errors.New("addDoctor: You need to pass 2 arguments")
-	}
-
-	// parse first argument to doctor object
-	err := json.Unmarshal([]byte(args[0]), &doctor)
-
-	// put second argument in password string
-	pw = args[1]
-
-	// check if error during parsing of arguments
-	if err != nil {
-		return nil, err
-	}
-	if pw == "" {
-		return nil, err
-	}
-
-	//var stream
-	// register and enroll Doctor
-	//stream, err := myAuthenticator.enrollDoctor(stub, doctor.doctorID, pw)
-
-	// check if error during enrolling
-	if err != nil {
-		return nil, err
-	}
-	// addDoctor to table
-	return myTableHandler.insertDoctor(stub, doctor)
-
 }
 
 /*
@@ -293,7 +317,7 @@ func (t *HealthContract) Query(stub shim.ChaincodeStubInterface, function string
 	case "getMyPatientInfo": //case "getMyInfo":
 		return t.getPatientInfo(stub, args)
 	case "getPermissions":
-		return t.getPermissions(stub, args)
+		return t.getPermissionsOfPatient(stub, args)
 
 	/*default:
 			return nil, errors.New("Invalid invoke function name for Patient.")
@@ -306,8 +330,8 @@ func (t *HealthContract) Query(stub shim.ChaincodeStubInterface, function string
 	*/
 	//case:Doctor:
 	//switch function {
-	case "getMyPatients":
-		return t.getPatientsOfDoctor(stub, args)
+	case "getMyPermissions":
+		return t.getPermissionsOfDoctor(stub, args)
 	case "getPatientInfo":
 		return t.getPatientInfo(stub, args)
 	case "getMyInfo":
@@ -361,26 +385,27 @@ func (t *HealthContract) getPatientInfo(stub shim.ChaincodeStubInterface, args [
 
 // returns the permissions of a patient
 // takes in 1 argument, patientID
-func (t *HealthContract) getPermissions(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+func (t *HealthContract) getPermissionsOfPatient(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 
 	// check number of arguments
-	if len(args) != 2 {
-		return nil, errors.New("getPermissions: You need to pass 1 argument")
+	if len(args) != 1 {
+		return nil, errors.New("getPermissionsOfPatient: You need to pass 1 argument")
 	}
 
-	return nil, nil
+	return myTableHandler.getPatientPermissions(stub, args[0])
 }
 
 // returns all the patient's data (array of patient structs) of a doctor
 // takes in 1 argument, doctorID
-func (t *HealthContract) getPatientsOfDoctor(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+func (t *HealthContract) getPermissionsOfDoctor(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 
 	// check number of arguments
-	if len(args) != 2 {
-		return nil, errors.New("getPermissions: You need to pass 1 argument")
+	if len(args) != 1 {
+		return nil, errors.New("getPermissionsOfDoctor: You need to pass 1 argument")
 	}
-
 	return nil, nil
+
+	return myTableHandler.getDoctorPermissions(stub, args[0])
 }
 
 // returns the doctor's data
