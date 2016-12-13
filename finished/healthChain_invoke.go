@@ -28,16 +28,16 @@ func (t *HealthContract) addPatient(stub shim.ChaincodeStubInterface, args []str
 	}
 
 	// create Patient JSON
-	patient_id := "\"iD\":\"" + args[0] + "\", "
+	patientID := "\"iD\":\"" + args[0] + "\", "
 	firstname := "\"firstName\":\"" + args[1] + "\", "
 	lastname := "\"lastName\":\"" + args[2] + "\", "
 	address := "\"address\":\"" + args[3] + "\", "
 	dateofbirth := "\"dateOfBirth\":\"" + args[4] + "\""
 
-	patient_json := "{" + patient_id + firstname + lastname + address + dateofbirth + "}"
+	patientJSON := "{" + patientID + firstname + lastname + address + dateofbirth + "}"
 
 	// parse Patient JSON to patient go struct
-	err := json.Unmarshal([]byte(patient_json), &patient)
+	err := json.Unmarshal([]byte(patientJSON), &patient)
 
 	// check if error during parsing of arguments
 	if err != nil {
@@ -70,18 +70,18 @@ func (t *HealthContract) addDoctor(stub shim.ChaincodeStubInterface, args []stri
 	}
 
 	// create Doctor JSON
-	doctor_id := "\"iD\":\"" + args[0] + "\", "
+	doctorID := "\"iD\":\"" + args[0] + "\", "
 	firstname := "\"firstName\":\"" + args[1] + "\", "
 	lastname := "\"lastName\":\"" + args[2] + "\", "
 	address := "\"address\":\"" + args[3] + "\", "
 	dateofbirth := "\"dateOfBirth\":\"" + args[4] + "\", "
-	doctor_type := "\"type\":\"" + args[5] + "\", "
+	doctorType := "\"type\":\"" + args[5] + "\", "
 	institute := "\"institute\":\"" + args[6] + "\""
 
-	doctor_json := "{" + doctor_id + firstname + lastname + address + dateofbirth + doctor_type + institute + "}"
+	doctorJSON := "{" + doctorID + firstname + lastname + address + dateofbirth + doctorType + institute + "}"
 
 	// parse Doctor JSON to doctor go struct
-	err := json.Unmarshal([]byte(doctor_json), &doctor)
+	err := json.Unmarshal([]byte(doctorJSON), &doctor)
 
 	// check if error during parsing of arguments
 	if err != nil {
@@ -104,13 +104,13 @@ func (t *HealthContract) giveDocorPermission(stub shim.ChaincodeStubInterface, a
 	}
 
 	// create Patient JSON
-	patient_id := "\"iD\":\"" + caller + "\", "
-	doctor_id := "\"firstName\":\"" + args[0] + "\", "
+	patientID := "\"iD\":\"" + caller + "\", "
+	doctorID := "\"firstName\":\"" + args[0] + "\", "
 
-	permission_json := "{" + patient_id + doctor_id + "}"
+	permissionJSON := "{" + patientID + doctorID + "}"
 
 	// parse Patient JSON to patient go struct
-	err := json.Unmarshal([]byte(permission_json), &permission)
+	err := json.Unmarshal([]byte(permissionJSON), &permission)
 
 	// check if error during parsing of arguments
 	if err != nil {

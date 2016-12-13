@@ -39,6 +39,7 @@ const (
 type handler struct {
 }
 
+// NewTableHandler create new handler
 func NewTableHandler() *handler {
 	return &handler{}
 }
