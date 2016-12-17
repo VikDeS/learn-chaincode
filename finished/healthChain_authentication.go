@@ -31,13 +31,13 @@ func (t *HealthContract) getCallerData(stub shim.ChaincodeStubInterface) (string
 	}
 
 	fmt.Println("UserName: " + string(username))
-	/*
-		typeOfUser, err := stub.ReadCertAttribute("typeOfUser")
-		if err != nil {
-			fmt.Println("typeOfUser" + err.Error())
-		}
-		fmt.Println("TypeOfUser: " + string(typeOfUser))*/
 
-	return string(username), "ADMIN", nil //string(typeOfUser), nil
+	typeOfUser, err := stub.ReadCertAttribute("typeOfUser")
+	if err != nil {
+		fmt.Println("typeOfUser" + err.Error())
+	}
+	fmt.Println("TypeOfUser: " + string(typeOfUser))
+
+	return string(username), string(typeOfUser), nil
 
 }

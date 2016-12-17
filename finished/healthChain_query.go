@@ -12,7 +12,7 @@ import (
 // takes in 1 argument, patientID
 func (t *HealthContract) getPatientInfo(stub shim.ChaincodeStubInterface, args []string, caller string) ([]byte, error) {
 	if caller == args[0] {
-		fmt.Println("caller = patientID")
+		fmt.Println("caller == patientID")
 	}
 
 	// check number of arguments

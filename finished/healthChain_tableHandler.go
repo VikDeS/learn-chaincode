@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 )
@@ -38,6 +37,12 @@ const (
 
 type handler struct {
 }
+
+/*
+---------------------------------------------------
+---------------- INIT FUNCTIONALITY ---------------
+---------------------------------------------------
+*/
 
 // NewTableHandler create new handler
 func NewTableHandler() *handler {
@@ -80,6 +85,12 @@ func (t *handler) createTables(stub shim.ChaincodeStubInterface) ([]byte, error)
 	})
 
 }
+
+/*
+---------------------------------------------------
+--------------- INSERT FUNCTIONALITY --------------
+---------------------------------------------------
+*/
 
 func (t *handler) insertPatient(stub shim.ChaincodeStubInterface, patient Patient) ([]byte, error) {
 
@@ -130,6 +141,13 @@ func (t *handler) insertPermission(stub shim.ChaincodeStubInterface, permission 
 	return nil, err
 }
 
+/*
+---------------------------------------------------
+--------------- QUERY FUNCTIONALITY --------------
+---------------------------------------------------
+*/
+
+// returns parameters of userType with ID=_id from tableName
 func (t *handler) getUser(stub shim.ChaincodeStubInterface, tableName string, _id string) ([]string, error) {
 
 	var columns []shim.Column
@@ -165,9 +183,10 @@ func (t *handler) getDoctor(stub shim.ChaincodeStubInterface, _id string) ([]str
 	return t.getUser(stub, doctorTableName, _id)
 }
 
-func (t *handler) getRows(stub shim.ChaincodeStubInterface, tablename string) ([]shim.Row, error) {
+func (t *handler) getPermissions(stub shim.ChaincodeStubInterface, _id string, column int) ([]byte, error) {
 
-	rowChannel, err := stub.GetRows(tablename, nil)
+	rowChannel, err := stub.GetRows(permissionsTableName, nil)
+
 	if err != nil {
 		return nil, err
 	}
@@ -186,18 +205,6 @@ func (t *handler) getRows(stub shim.ChaincodeStubInterface, tablename string) ([
 		if rowChannel == nil {
 			break
 		}
-	}
-	fmt.Println(rows)
-
-	return rows, err
-}
-
-func (t *handler) getPermissions(stub shim.ChaincodeStubInterface, _id string, column int) ([]byte, error) {
-
-	rows, err := t.getRows(stub, permissionsTableName)
-
-	if err != nil {
-		return nil, err
 	}
 
 	var permissions []Permission
@@ -222,14 +229,85 @@ func (t *handler) getPatientPermissions(stub shim.ChaincodeStubInterface, _id st
 }
 
 /*
-func (t *handler) deletePatient(stub shim.ChaincodeStubInterface, _id string) error {
+---------------------------------------------------
+--------------- UPDATE FUNCTIONALITY --------------
+---------------------------------------------------
+*/
 
-    err := stub.DeleteRow(
-		"PatientRecords",
-		[]shim.Column{shim.Column{Value: &shim.Column_String_{String_: _id}}},
-	)
-    if err != nil {
-		return errors.New("error deleting patient")
+func (t *handler) updatePatient(stub shim.ChaincodeStubInterface, patient Patient) ([]byte, error) {
+
+	ok, err := stub.ReplaceRow(patientTableName, shim.Row{
+		Columns: []*shim.Column{
+			&shim.Column{Value: &shim.Column_String_{String_: patient.ID}},
+			&shim.Column{Value: &shim.Column_String_{String_: patient.FirstName}},
+			&shim.Column{Value: &shim.Column_String_{String_: patient.LastName}},
+			&shim.Column{Value: &shim.Column_String_{String_: patient.Address}},
+			&shim.Column{Value: &shim.Column_String_{String_: patient.DateOfBirth}}},
+	})
+	if !ok {
+		return nil, errors.New("updatePatient: Row not found")
 	}
-    return nil
-}*/
+
+	return nil, err
+}
+
+func (t *handler) updateDoctor(stub shim.ChaincodeStubInterface, doctor Doctor) ([]byte, error) {
+
+	ok, err := stub.ReplaceRow(doctorTableName, shim.Row{
+		Columns: []*shim.Column{
+			&shim.Column{Value: &shim.Column_String_{String_: doctor.ID}},
+			&shim.Column{Value: &shim.Column_String_{String_: doctor.FirstName}},
+			&shim.Column{Value: &shim.Column_String_{String_: doctor.LastName}},
+			&shim.Column{Value: &shim.Column_String_{String_: doctor.Address}},
+			&shim.Column{Value: &shim.Column_String_{String_: doctor.DateOfBirth}},
+			&shim.Column{Value: &shim.Column_String_{String_: doctor.Type}},
+			&shim.Column{Value: &shim.Column_String_{String_: doctor.Institute}}},
+	})
+
+	if !ok {
+		return nil, errors.New("updateDoctor: Row not found")
+	}
+
+	return nil, err
+}
+
+/*
+---------------------------------------------------
+--------------- DELETE FUNCTIONALITY --------------
+---------------------------------------------------
+*/
+
+func (t *handler) deletePatient(stub shim.ChaincodeStubInterface, _id string) ([]byte, error) {
+
+	var columns []shim.Column
+	col1 := shim.Column{Value: &shim.Column_String_{String_: _id}}
+	columns = append(columns, col1)
+
+	err := stub.DeleteRow(patientTableName, columns)
+
+	return nil, err
+}
+
+func (t *handler) deleteDoctor(stub shim.ChaincodeStubInterface, _id string) ([]byte, error) {
+
+	var columns []shim.Column
+	col1 := shim.Column{Value: &shim.Column_String_{String_: _id}}
+	columns = append(columns, col1)
+
+	err := stub.DeleteRow(doctorTableName, columns)
+
+	return nil, err
+}
+
+func (t *handler) deletePermission(stub shim.ChaincodeStubInterface, permission Permission) ([]byte, error) {
+
+	var columns []shim.Column
+	col1 := shim.Column{Value: &shim.Column_String_{String_: permission.PatientID}}
+	col2 := shim.Column{Value: &shim.Column_String_{String_: permission.DoctorID}}
+	columns = append(columns, col1)
+	columns = append(columns, col2)
+
+	err := stub.DeleteRow(patientTableName, columns)
+
+	return nil, err
+}
